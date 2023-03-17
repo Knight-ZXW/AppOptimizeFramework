@@ -1,0 +1,83 @@
+buildscript {
+    ext.kotlin_version = '1.5.32'
+    Properties properties = new Properties()
+    file("local.properties").withInputStream { inputStream ->
+        properties.load(inputStream)
+    }
+    repositories {
+        //TODO
+        var cMaven = properties.getProperty("C_MAVEN")
+        if (cMaven!=null){
+            maven { url cMaven }
+        }
+        mavenCentral()
+        google()
+        maven { setUrl("https://maven.aliyun.com/repository/public") }
+        maven { setUrl("https://maven.aliyun.com/repository/google") }
+        maven { url 'https://jitpack.io' }
+        maven { setUrl("https://artifact.bytedance.com/repository/byteX/") }
+
+        mavenLocal()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.18.0'
+        classpath "com.bytedance.android.byteX:base-plugin:0.3.0"
+        classpath "io.github.knight-zxw:lancet-plugin:0.0.7"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}"
+//        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+Properties properties = new Properties()
+file("local.properties").withInputStream { inputStream ->
+    properties.load(inputStream)
+}
+
+allprojects {
+    repositories {
+        var cMaven = properties.getProperty("C_MAVEN")
+        if (cMaven!=null){
+            maven { url cMaven }
+        }
+        mavenCentral()
+        google()
+        maven { setUrl("https://maven.aliyun.com/repository/public") }
+        maven { setUrl("https://maven.aliyun.com/repository/google") }
+        maven { url 'https://jitpack.io' }
+        maven { setUrl("https://artifact.bytedance.com/repository/byteX/") }
+
+        mavenLocal()
+
+    }
+    tasks.withType(Javadoc) {
+        enabled = false
+    }
+}
+
+
+if (properties.getProperty("I_C")!=null){
+    project.ext.set("GROUP",properties.getProperty("C_GROUP"))
+    apply from :'./cUploadSetting.gradle'
+}else {
+    project.ext.set("GROUP","io.github.knight-zxw")
+
+    subprojects { project ->
+        group = GROUP
+        tasks.withType(Javadoc) {
+            enabled = false
+        }
+        plugins.withId("com.vanniktech.maven.publish") {
+            mavenPublish {
+                sonatypeHost = "s01"
+            }
+        }
+    }
+
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

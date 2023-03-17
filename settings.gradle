@@ -1,0 +1,16 @@
+rootProject.name = "AppOptimizeFramework"
+include ':app'
+include ':optimize-framework'
+include ':message-observer'
+include ':android-framework'
+include ':looper-free'
+include ':kprofiler'
+//include ':plugin-gsonopt'
+include ':gson-opt'
+include ':gson-opt-apt'
+include ':kbArt'
+include ':optimize-other'
+include ':optimize-looper'
+include ':atrace-server'
+project(':atrace-server').projectDir = new File('./atrace/atrace-server')
+include ':atrace-processor'
