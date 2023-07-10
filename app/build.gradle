@@ -79,9 +79,6 @@ dependencies {
     implementation project(path: ':optimize-looper')
     implementation project(path: ':optimize-other')
     implementation project(path: ':message-observer')
-    implementation project(path: ':gson-opt')
-    kapt project(path: ':gson-opt-apt')
-    annotationProcessor project(path: ':gson-opt-apt')
     implementation project(path: ':kprofiler')
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'

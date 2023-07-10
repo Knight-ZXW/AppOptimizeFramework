@@ -30,16 +30,16 @@ public class RheaATrace {
             Log.d(TAG, "rhea atrace has been started!");
             return true;
         }
-
+        if (!init()) {
+            return false;
+        }
         if (!externalDir.exists()) {
             if (!externalDir.mkdirs()) {
                 Log.e(TAG, "failed to create directory " + externalDir.getAbsolutePath());
                 return false;
             }
         }
-        if (!init()) {
-            return false;
-        }
+        BinaryTrace.init(new File(externalDir, "rhea-atrace.bin"));
         int resultCode = nativeStart(externalDir.getAbsolutePath());
 
         if (resultCode != 1) {
@@ -108,13 +108,32 @@ public class RheaATrace {
             throw new UnsatisfiedLinkError("failed to load bytehook lib:" + libName);
         }
     }
+    public static int getHttpServerPort() {
+        return nativeGetHttpServerPort();
+    }
+
+    public static boolean isStartWhenAppLaunch() {
+        return nativeStartWhenAppLaunch();
+    }
+
+    public static boolean isMainThreadOnly() {
+        return nativeMainThreadOnly();
+    }
+
 
     @MainThread
     private static native int nativeStart(String atraceLocation);
 
     @MainThread
     private static native int nativeStop();
+
+    private static native boolean nativeStartWhenAppLaunch();
+
+    public static native boolean nativeMainThreadOnly();
+
     private static native int nativeGetArch();
+
+    public static native int nativeGetHttpServerPort();
 
     public static int getArch() {
         return nativeGetArch();

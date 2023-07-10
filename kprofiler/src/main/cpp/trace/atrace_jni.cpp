@@ -74,11 +74,25 @@ static jint JNI_getArch(JNIEnv *env, jclass) {
 #endif
 }
 
+static jboolean JNI_startWhenAppLaunch(JNIEnv *env, jobject thiz) {
+  char value[PROP_VALUE_MAX];
+  __system_property_get("debug.rhea.startWhenAppLaunch", value);
+  return value[0] == '1';
+}
+
+static jint JNI_getHttpServerPort(JNIEnv *env, jobject thiz) {
+  char value[PROP_VALUE_MAX];
+  __system_property_get("debug.rhea.httpServerPort", value);
+  return (jint) strtol(value, nullptr, 10);
+}
+
 // ----------------------------------------------------------------------------
 static JNINativeMethod methods[] = {
     {"nativeStart",                    "(Ljava/lang/String;)I", (void *) JNI_startTrace},
     {"nativeStop",                     "()I",                   (void *) JNI_stopTrace},
-//    {"nativeMainThreadOnly",           "()Z",                   (void *) JNI_isMainThreadOnly},
+    {"nativeStartWhenAppLaunch",       "()Z",                   (void *) JNI_startWhenAppLaunch},
+    {"nativeMainThreadOnly",           "()Z",                   (void *) JNI_isMainThreadOnly},
+    {"nativeGetHttpServerPort",        "()I",                   (void *) JNI_getHttpServerPort},
     {"nativeGetArch",                  "()I",                   (void *) JNI_getArch},
 };
 

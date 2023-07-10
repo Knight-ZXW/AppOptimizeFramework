@@ -19,7 +19,7 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
-import com.bytedance.rheatrace.atrace.BinaryTrace;
+import com.knightboost.kprofiler.atrace.BinaryTrace;
 import com.knightboost.kprofiler.atrace.RheaATrace;
 
 import org.json.JSONException;

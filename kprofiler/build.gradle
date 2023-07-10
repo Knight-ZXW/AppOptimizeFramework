@@ -36,6 +36,15 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+            java {
+                srcDir "src/main/java"
+            }
+        }
+    }
     externalNativeBuild {
         cmake {
             path file('CMakeLists.txt')
@@ -52,6 +61,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     implementation('androidx.annotation:annotation:1.1.0')
     implementation project(path: ':kbArt')
+    compileOnly files('libs/dalvik.critical.jar')
     implementation "com.bytedance:bytehook:1.0.7"
     implementation 'com.bytedance.android:shadowhook:1.0.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

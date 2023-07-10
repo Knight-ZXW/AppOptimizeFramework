@@ -1,7 +1,5 @@
 package com.knightboost.appoptimizeframework.gsonopttest
 
-import android.os.Parcelable
-import com.knightboost.gsonopt.AutoGsonAdapter
 
 data class RecommendTabInfo(
     var second: ArrayList<Second>? = ArrayList(),
@@ -94,7 +92,6 @@ data class Second(
  * @param width icon宽度，可能为0
  * @param webpUrl 选中运营位动图
  */
-@AutoGsonAdapter
 data class SecondTabImageModel(
     var notChosen: String? = "",
     var chosen: String? = "",

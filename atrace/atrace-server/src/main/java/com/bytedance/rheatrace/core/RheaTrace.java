@@ -20,7 +20,7 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 import android.os.Trace;
 
-import com.bytedance.rheatrace.atrace.BinaryTrace;
+import com.knightboost.kprofiler.atrace.BinaryTrace;
 
 final class RheaTrace {
 

@@ -23,8 +23,9 @@ import android.widget.Toast;
 
 import androidx.annotation.MainThread;
 
-import com.bytedance.rheatrace.atrace.RheaATrace;
-import com.bytedance.rheatrace.common.ReflectUtil;
+
+import com.knightboost.kprofiler.ReflectUtil;
+import com.knightboost.kprofiler.atrace.RheaATrace;
 
 import java.io.File;
 import java.lang.reflect.Method;
