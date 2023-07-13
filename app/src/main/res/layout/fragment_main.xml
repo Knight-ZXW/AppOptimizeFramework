@@ -16,10 +16,10 @@
     </androidx.appcompat.widget.AppCompatButton>
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_gsonTest"
+        android:id="@+id/btn_DisableClassVerify"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Gson 自定义TypeAdapter优化 测试"
+        android:text="禁用 classVerify"
         />
 
 

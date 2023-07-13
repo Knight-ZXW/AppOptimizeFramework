@@ -54,6 +54,7 @@ find_library( # Sets the name of the path variable.
         log)
 
 find_package(bytehook REQUIRED CONFIG)
+find_package(shadowhook REQUIRED CONFIG)
 find_package(xdl REQUIRED CONFIG)
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -63,4 +64,4 @@ target_link_libraries( # Specifies the target library.
         kbArt
         ${log-lib}
         xdl::xdl
-        bytehook::bytehook)
+        shadowhook::shadowhook)

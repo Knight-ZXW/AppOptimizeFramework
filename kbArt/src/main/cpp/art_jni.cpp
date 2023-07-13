@@ -24,3 +24,20 @@ JNIEXPORT jboolean JNICALL
 Java_com_knightboost_artvm_KbArt_nIsJdwpAllow(JNIEnv *env, jclass clazz) {
   return ArtHelper::IsJdwpAllow();
 }
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_knightboost_artvm_KbArt_nDisableClassVerify(JNIEnv *env, jclass clazz) {
+  return ArtHelper::DisableClassVerify();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_knightboost_artvm_KbArt_nDelayJit(JNIEnv *env, jclass clazz) {
+  return ArtHelper::DelayJit();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_knightboost_artvm_KbArt_nResumeJit(JNIEnv *env, jclass clazz) {
+  return ArtHelper::ResumeJit();
+}

@@ -4,6 +4,19 @@
 
 #pragma once
 namespace kbArt {
+
+#define ANDROID_API_M 23 // Android 6.0
+#define ANDROID_API_N 24 // Android 7.0
+#define ANDROID_API_N_MR1 25 // Android 7.1
+#define ANDROID_API_O 26 // Android 8.1
+#define ANDROID_API_O_MR1 27 // Android 8.1
+#define ANDROID_API_P 28 // Android 9
+#define ANDROID_API_Q 29 // Android 10
+#define ANDROID_API_R 30 // Android 11
+#define ANDROID_API_S 31 // Android 12
+#define ANDROID_API_S_V2 32 // Android 12
+#define ANDROID_API_TIRAMISU 33
+
 enum class SuspendReason : char {
   // Suspending for internal reasons (e.g. GC, stack trace, etc.).
   kInternal,

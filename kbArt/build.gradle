@@ -66,6 +66,7 @@ dependencies {
 
     implementation("com.bytedance:bytehook:1.0.7")
     implementation("io.hexhacking:xdl:1.2.1")
+    implementation 'com.bytedance.android:shadowhook:1.0.7'
     implementation('androidx.annotation:annotation:1.1.0')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

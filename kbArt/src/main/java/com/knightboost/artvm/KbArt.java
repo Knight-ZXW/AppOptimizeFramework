@@ -1,5 +1,7 @@
 package com.knightboost.artvm;
 
+import android.os.Build;
+
 public class KbArt {
     private static boolean inited = false;
 
@@ -25,4 +27,11 @@ public class KbArt {
     public static native boolean nIsJdwpAllow();
 
     public static native boolean nSetJavaDebuggable(boolean debuggable);
+
+    public static native boolean nDisableClassVerify();
+
+    public static native boolean nDelayJit();
+
+    public static native  boolean nResumeJit();
+
 }

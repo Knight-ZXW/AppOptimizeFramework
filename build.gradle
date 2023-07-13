@@ -11,11 +11,12 @@ buildscript {
             maven { url cMaven }
         }
         mavenCentral()
-        google()
         maven { setUrl("https://maven.aliyun.com/repository/public") }
         maven { setUrl("https://maven.aliyun.com/repository/google") }
         maven { url 'https://jitpack.io' }
         maven { setUrl("https://artifact.bytedance.com/repository/byteX/") }
+        google()
+
 
         mavenLocal()
     }
@@ -59,7 +60,6 @@ allprojects {
 
 
 if (properties.getProperty("I_C")!=null){
-    project.ext.set("GROUP",properties.getProperty("C_GROUP"))
     apply from :'./cUploadSetting.gradle'
 }else {
     project.ext.set("GROUP","io.github.knight-zxw")

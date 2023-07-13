@@ -21,8 +21,6 @@ class JniIdManager {
    void * DecodeMethodId(jmethodID methodId);
  private:
    void *_instanceRef;
-
-
 };
 
 class ArtHelper {
@@ -30,7 +28,7 @@ class ArtHelper {
  public:
   static int init(JNIEnv *env);
 
-  static void* findArtDsym(const char *symbol, size_t *symbol_size);
+  static void* getArtSoHandle();
 
   static void *getThreadList();
 
@@ -39,8 +37,10 @@ class ArtHelper {
   //Suspend a thread using a peer.
   static void *suspendThreadByPeer(jobject peer, SuspendReason reason, bool *timed_out);
 
-  // Suspend a thread using its thread id, typically used by lock/monitor inflation. Returns the
-  // thread on success else null.
+    // Suspend a thread using its thread id, typically used by lock/monitor inflation. Returns the
+    // thread on success else null. The thread id is used to identify the thread to avoid races with
+    // the thread terminating. Note that as thread ids are recycled this may not suspend the expected
+    // thread, that may be terminating. If the suspension times out then *timeout is set to true.
   static void *SuspendThreadByThreadId(uint32_t threadId,
                                        SuspendReason suspendReason,
                                        bool *timed_out);
@@ -55,20 +55,26 @@ class ArtHelper {
 
   static bool SetJavaDebuggable(bool debuggable);
 
+  static bool DisableClassVerify();
+
+  static bool  EnableClassVerify();
+
+  static bool  DelayJit();
+
+  static bool  ResumeJit();
+
   static std::string PrettyMethod(void *art_method, bool with_signature);
-
-  static ThreadState FetchState(void *thread, void *monitor_object, uint32_t *lock_owner_tid);
-
-  static uint64_t GetCpuMicroTime(void *thread);
 
  private:
   static int load_symbols();
 
  public:
-  static void *artHandle;
   static void *runtime;
   static void *partialRuntime;
   static JniIdManager* jniIdManager;
+ private:
+  static char* artPath;
+
 
 };
 }

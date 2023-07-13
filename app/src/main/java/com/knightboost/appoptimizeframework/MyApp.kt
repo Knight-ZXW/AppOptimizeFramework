@@ -1,37 +1,38 @@
 package com.knightboost.appoptimizeframework
 
+//import com.knightboost.kprofiler.KProfiler
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.os.Build
-import android.os.Message
 import android.util.Log
+import com.bytedance.shadowhook.ShadowHook
+import com.knightboost.appoptimizeframework.tests.preloadtest.*
 import com.knightboost.appoptimizeframework.tests.retrofit.BilibiliService
 import com.knightboost.appoptimizeframework.tests.retrofit.HttpService
-import com.knightboost.appoptimizeframework.tests.preloadtest.*
 import com.knightboost.kprofiler.atrace.RheaATrace
-import com.knightboost.optimize.looperopt.LooperMsgOptimizeManager
-import com.knightboost.optimize.preload.ClassPreloadExecutor
-//import com.knightboost.kprofiler.KProfiler
-import com.knightboost.messageobserver.MessageObserver
 import com.knightboost.messageobserver.MessageObserverManager
+import com.knightboost.optimize.looperopt.LooperMsgOptimizeManager
 import com.knightboost.optimize.looperopt.StateListener
-import org.lsposed.hiddenapibypass.HiddenApiBypass
+import com.knightboost.optimize.preload.ClassPreloadExecutor
 import timber.log.Timber
 import java.io.File
-import java.lang.RuntimeException
+
 
 class MyApp : Application() {
     @SuppressLint("BinaryOperationInTimber")
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
-        val dir = File(base.externalCacheDir,"trace")
-        dir.mkdirs()
-        Log.e("zxw","dir is ${dir.absolutePath}")
 
-        RheaATrace.start(baseContext,
-        dir)
+        ShadowHook.init(
+            ShadowHook.ConfigBuilder()
+                .setMode(ShadowHook.Mode.UNIQUE)
+                .build()
+        )
+//        val dir = File(base.externalCacheDir,"trace")
+//        dir.mkdirs()
+//        RheaATrace.start(baseContext,
+//        dir)
 
 //        MonitorClassLoader.hook(this,true)
         // 打印 类加载信息

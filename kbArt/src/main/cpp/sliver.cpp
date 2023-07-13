@@ -25,7 +25,6 @@ Java_com_knightboost_sliver_Sliver_nativeGetMethodStackTrace(JNIEnv *env,
   bool isSameThread = false;
   if (current_thread == thread){
     isSameThread = true;
-    LOGE("sliver","在当前线程获取调用栈");
   }
   if (!isSameThread){
     ArtHelper::SuspendThreadByThreadId(thread->GetThreadId(),

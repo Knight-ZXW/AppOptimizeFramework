@@ -66,7 +66,6 @@ class Thread {
 
   } tls32_android10;
 
-
  public:
 // Guaranteed to be non-zero.
   /**

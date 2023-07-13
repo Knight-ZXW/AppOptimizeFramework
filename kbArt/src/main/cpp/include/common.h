@@ -26,7 +26,7 @@ static inline int32_t getAndroidApiLevel() {
 
 
 
-static const char* getLibArtPath(){
+static char* getLibArtPath(){
   static char* artPath = nullptr;
   if (artPath != nullptr){
     return artPath;

@@ -11,38 +11,35 @@
 #include <string>
 #include <cstdlib>
 #include <sys/system_properties.h>
+#include <shadowhook.h>
+#include <unistd.h>
 #include "xdl.h"
 #include "mutex"
-
 namespace kbArt {
 void *ArtHelper::runtime = nullptr;
 void *ArtHelper::partialRuntime = nullptr;
-void *ArtHelper::artHandle = nullptr;
+char *ArtHelper::artPath = nullptr;
 JniIdManager *ArtHelper::jniIdManager = nullptr;
 
 static WalkStack_t walk_stack = nullptr;
+static Resume_t resume = nullptr;
+static PrettyMethod_t pretty_method = nullptr;
 static SuspendThreadByPeer_t suspend_thread_by_peer = nullptr;
 static SuspendThreadByPeer_Q_t suspend_thread_by_peer_Q = nullptr;
-
 static SuspendThreadByThreadId_t suspend_thread_by_thread_id = nullptr;
 
-static Resume_t resume = nullptr;
-
-static PrettyMethod_t pretty_method = nullptr;
-static FetchState_t fetchState = nullptr;
-static GetCpuMicroTime_t getCpuMicroTime = nullptr;
-
-static void (*pSetJdwpAllowed)(bool) = nullptr;
 
 static void *thread_list = nullptr;
 
 static int api_level = 0;
 
-#define ANDROID_API_P 28
-#define ANDROID_API_Q 29
-#define ANDROID_API_R 30
-#define ANDROID_API_S 31
-#define ANDROID_API_TIRAMISU 33
+static std::mutex mutex;
+
+
+
+//static std::map<std::string, int> findSymbolRecordMap;
+
+
 #define TAG "ArtHelper"
 
 //source from: https://github.com/tiann/FreeReflection/blob/master/library/src/main/cpp/art.cpp
@@ -68,21 +65,13 @@ int findOffset(void *start, int regionStart, int regionEnd, T target) {
  */
 int ArtHelper::load_symbols() {
   LOGV("ArtHelper", "start load art symbols");
-  api_level = getAndroidApiLevel();
-  const char *artPath = getLibArtPath();
+  artPath = getLibArtPath();
+  auto start = std::chrono::steady_clock::now();
   void *handle = xdl_open(artPath,
                           XDL_TRY_FORCE_LOAD);
-  ArtHelper::artHandle = handle;
-  LOGV("ArtHelper", "handle is %p", handle);
+  auto end = std::chrono::steady_clock::now();
+  LOGE(TAG,"open xdl cost %lld",std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 
-  walk_stack = reinterpret_cast<WalkStack_t>(xdl_dsym(handle,
-                                                      "_ZN3art12StackVisitor9WalkStackILNS0_16CountTransitionsE0EEEvb",
-                                                      nullptr));
-  LOGV("ArtHelper", "walk_stack is %p", walk_stack);
-
-  if (walk_stack == nullptr) {
-    return -1;
-  }
 
   suspend_thread_by_thread_id =
       reinterpret_cast<SuspendThreadByThreadId_t>(xdl_dsym(handle,
@@ -94,7 +83,7 @@ int ArtHelper::load_symbols() {
     return -1;
   }
 
-  if (api_level > __ANDROID_API_Q__) { //TODO Android 11未支持
+  if (api_level > __ANDROID_API_Q__) {
     suspend_thread_by_peer =
         reinterpret_cast<SuspendThreadByPeer_t>(xdl_dsym(handle,
                                                          "_ZN3art10ThreadList19SuspendThreadByPeerEP8_jobjectNS_13SuspendReasonEPb",
@@ -112,24 +101,7 @@ int ArtHelper::load_symbols() {
     }
   }
 
-  resume = reinterpret_cast<Resume_t>(xdl_dsym(handle,
-                                               "_ZN3art10ThreadList6ResumeEPNS_6ThreadENS_13SuspendReasonE",
-                                               nullptr));
-  if (resume == nullptr) {
-    return -1;
-  }
-
-  pretty_method = reinterpret_cast<PrettyMethod_t>(xdl_dsym(handle,
-                                                            "_ZN3art9ArtMethod12PrettyMethodEb",
-                                                            nullptr));
-  if (pretty_method == nullptr) {
-    return -1;
-  }
-
-  getCpuMicroTime =
-      reinterpret_cast<GetCpuMicroTime_t>(xdl_dsym(handle, "_ZNK3art6Thread15GetCpuMicroTimeEv",
-                                                   nullptr));
-
+  xdl_close(handle);
   return 0;
 }
 int ArtHelper::init(JNIEnv *env) {
@@ -161,7 +133,7 @@ int ArtHelper::init(JNIEnv *env) {
         reinterpret_cast<PartialRuntimeTiramisu *>(ArtHelper::partialRuntime)->thread_list_;
   } else if (api_level >= ANDROID_API_R) {
     ArtHelper::partialRuntime =
-        reinterpret_cast<char *>(partialRuntime) + offsetOfVmExt -
+        reinterpret_cast<char *>(runtime) + offsetOfVmExt -
             offsetof(PartialRuntimeR, java_vm_);
     thread_list = reinterpret_cast<PartialRuntimeR *>(ArtHelper::partialRuntime)->thread_list_;
   } else if (api_level >= ANDROID_API_Q) {
@@ -175,11 +147,14 @@ int ArtHelper::init(JNIEnv *env) {
             offsetof(PartialRuntimeP, java_vm_);
     thread_list = reinterpret_cast<PartialRuntimeP *>(ArtHelper::partialRuntime)->thread_list_;
   } else {
-    //TODO
+    //TODO 未验证的系统版本
+    return -1;
   }
 
   return 0;
 }
+
+
 
 void *ArtHelper::getThreadList() {
   return thread_list;
@@ -197,32 +172,47 @@ void *ArtHelper::SuspendThreadByThreadId(uint32_t threadId,
 }
 
 bool ArtHelper::Resume(void *thread, SuspendReason suspendReason) {
+  if (resume == nullptr) {
+    void *handle = getArtSoHandle();
+    resume = reinterpret_cast<Resume_t>(xdl_dsym(handle,
+                                                 "_ZN3art10ThreadList6ResumeEPNS_6ThreadENS_13SuspendReasonE",
+                                                 nullptr));
+    xdl_close(handle);
+  }
   return resume(ArtHelper::getThreadList(), thread, suspendReason);
 }
 
 std::string ArtHelper::PrettyMethod(void *art_method, bool with_signature) {
+  if (pretty_method == nullptr) {
+    void *handle = getArtSoHandle();
+    pretty_method = reinterpret_cast<PrettyMethod_t>(xdl_dsym(handle,
+                                                              "_ZN3art9ArtMethod12PrettyMethodEb",
+                                                              nullptr));
+    xdl_close(handle);
+  }
   return pretty_method(art_method, with_signature);
 }
 
 void ArtHelper::StackVisitorWalkStack(StackVisitor *visitor, bool include_transitions) {
+  if (walk_stack == nullptr) {
+    void *handle = getArtSoHandle();
+    walk_stack = reinterpret_cast<WalkStack_t>(xdl_dsym(handle,
+                                                        "_ZN3art12StackVisitor9WalkStackILNS0_16CountTransitionsE0EEEvb",
+                                                        nullptr));
+    xdl_close(handle);
+  }
   walk_stack(visitor, include_transitions);
-}
-//todo
-ThreadState ArtHelper::FetchState(void *thread, void *monitor_object, uint32_t *lock_owner_tid) {
-  return fetchState(thread, monitor_object, lock_owner_tid);
-}
-
-// Returns the thread-specific CPU-time clock in microseconds or -1 if unavailable.
-uint64_t ArtHelper::GetCpuMicroTime(void *thread) {
-  return getCpuMicroTime(thread);
 }
 
 bool ArtHelper::SetJdwpAllowed(bool allowed) {
   static void (*setJdwpAllowed)(bool) = nullptr;
   if (setJdwpAllowed == nullptr) {
-    setJdwpAllowed = reinterpret_cast<void (*)(bool)>(xdl_dsym(artHandle,
+    void *handle = getArtSoHandle();
+
+    setJdwpAllowed = reinterpret_cast<void (*)(bool)>(xdl_dsym(handle,
                                                                "_ZN3art3Dbg14SetJdwpAllowedEb",
                                                                nullptr));
+    xdl_close(handle);
   }
   if (setJdwpAllowed != nullptr) {
     setJdwpAllowed(allowed);
@@ -236,7 +226,11 @@ bool ArtHelper::SetJavaDebuggable(bool debuggable) {
 
   static void (*setJavaDebuggable)(void *, bool) = nullptr;
   if (setJavaDebuggable == nullptr) {
-    setJavaDebuggable = reinterpret_cast<void (*)(void *, bool)>(xdl_dsym(artHandle, "_ZN3art7Runtime17SetJavaDebuggableEb", nullptr));
+    void *handle = getArtSoHandle();
+    setJavaDebuggable = reinterpret_cast<void (*)(void *, bool)>(xdl_dsym(handle,
+                                                                          "_ZN3art7Runtime17SetJavaDebuggableEb",
+                                                                          nullptr));
+    xdl_close(handle);
   }
   if (setJavaDebuggable != nullptr) {
     setJavaDebuggable(runtime, debuggable);
@@ -247,47 +241,104 @@ bool ArtHelper::SetJavaDebuggable(bool debuggable) {
 bool ArtHelper::IsJdwpAllow() {
   static bool (*isJdwpAllow)() = nullptr;
   if (isJdwpAllow == nullptr) {
-    isJdwpAllow = reinterpret_cast<bool (*)()>(xdl_dsym(artHandle, "_ZN3art3Dbg13IsJdwpAllowedEv", nullptr));
+    void *handle = getArtSoHandle();
+    isJdwpAllow =
+        reinterpret_cast<bool (*)()>(xdl_dsym(handle, "_ZN3art3Dbg13IsJdwpAllowedEv", nullptr));
+    xdl_close(handle);
   }
   return isJdwpAllow();
 }
-void *ArtHelper::findArtDsym(const char *symbol, size_t *symbol_size) {
-  return xdl_dsym(artHandle,
-                  symbol,
-                  symbol_size);
-}
+
 JniIdManager *ArtHelper::getJniIdManager() {
   if (api_level < ANDROID_API_TIRAMISU) {
     return nullptr;
   }
   if (jniIdManager == nullptr) {
-    void * address = nullptr;
+    void *address = nullptr;
     if (api_level >= ANDROID_API_TIRAMISU) {
-       address =
+      address =
           static_cast<void *>(
               (reinterpret_cast<PartialRuntimeTiramisu *>(ArtHelper::partialRuntime))->jni_id_manager_);
     } else if (api_level >= ANDROID_API_R) {
       address = static_cast<JniIdManager *>(
           (reinterpret_cast<PartialRuntimeR *>(ArtHelper::partialRuntime))->jni_id_manager_);
     }
-    if (address!= nullptr){
-      jniIdManager = new JniIdManager(ArtHelper::runtime,address);
+    if (address != nullptr) {
+      jniIdManager = new JniIdManager(ArtHelper::runtime, address);
     }
   }
   return jniIdManager;
 }
 
+bool ArtHelper::DisableClassVerify() {
+  //_ZN3art7Runtime15DisableVerifierEv
+  static void (*DisableVerifierEv)(void *) = nullptr;
+  if (DisableVerifierEv == nullptr) {
+    void *handle = getArtSoHandle();
+    DisableVerifierEv = reinterpret_cast<void (*)(void *)>(xdl_dsym(handle,
+                                                                    "_ZN3art7Runtime15DisableVerifierEv",
+                                                                    nullptr));
+    xdl_close(handle);
+  }
+  LOGE(TAG, "fun is %p", DisableVerifierEv);
+  if (DisableVerifierEv != nullptr) {
+    DisableVerifierEv(ArtHelper::runtime);
+    return true;
+  }
+  return false;
+}
+bool ArtHelper::EnableClassVerify() {
+  return false;
+}
 
+void *originJit = nullptr;
+void *jitStub = nullptr;
+void delayJitFunc(void *task, void *thread) {
+  LOGI(TAG, " jit invoked, delay it ");
+  sleep(5);
+  LOGI(TAG, "jit task wake up");
+  ((void (*)(void *, void *)) originJit)(task, thread);
+  LOGI(TAG, "jit task done");
+}
 
-JniIdManager::JniIdManager(void *runtime, void *instanceRef):_instanceRef(instanceRef) {
+bool ArtHelper::DelayJit() {
+  const char *jit = "_ZN3art3jit14JitCompileTask3RunEPNS_6ThreadE";
+  jitStub = shadowhook_hook_sym_name("libart.so", jit,
+                                     (void *) delayJitFunc,
+                                     (void **) &originJit);
+  if (jitStub != nullptr) {
+    LOGI(TAG, "hook to delay Jit success");
+    return true;
+  } else {
+    LOGE(TAG, "hook to delay Jit failed");
+    return false;
+  }
+}
+bool ArtHelper::ResumeJit() {
+  if (jitStub != nullptr) {
+    shadowhook_unhook(jitStub);
+    return true;
+  }
+  return false;
+}
+void *ArtHelper::getArtSoHandle() {
+  return   xdl_open(artPath,XDL_TRY_FORCE_LOAD);;
+}
+
+JniIdManager::JniIdManager(void *runtime, void *instanceRef) : _instanceRef(instanceRef) {
 }
 void *JniIdManager::DecodeMethodId(jmethodID methodId) {
-  if (api_level<ANDROID_API_R){
+  if (api_level < ANDROID_API_R) {
     return methodId;
   }
-  static void* (*_decodeMethodId)(void*, jmethodID) = nullptr;
-  if (_decodeMethodId == nullptr){
-    _decodeMethodId = reinterpret_cast<void *(*)(void*, jmethodID)>(ArtHelper::findArtDsym("_ZN3art3jni12JniIdManager14DecodeMethodIdEP10_jmethodID", nullptr));
+  static void *(*_decodeMethodId)(void *, jmethodID) = nullptr;
+  if (_decodeMethodId == nullptr) {
+    void *handle = ArtHelper::getArtSoHandle();
+    _decodeMethodId = reinterpret_cast<void *(*)(void *, jmethodID)>(xdl_dsym(
+        handle,
+        "_ZN3art3jni12JniIdManager14DecodeMethodIdEP10_jmethodID",
+        nullptr));
+    xdl_close(handle);
   }
   return _decodeMethodId(_instanceRef, methodId);
 }

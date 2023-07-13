@@ -61,32 +61,18 @@ class MainFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        binding.btnRetrofitTest.setOnClickListener { retrofitTest() }
-        binding.btnGsonTest.setOnClickListener {
-//            gsonTest()
-            MessageObserverManager.getMain().addMessageObserver(object : MessageObserver {
-                override fun onMessageDispatchStarting(msg: String?) {
-                }
-
-                override fun onMessageDispatched(msg: String?, message: Message?) {
-                    Log.e("zxwTest","onMessageDispatched "+message)
-                }
-            })
-
-            val handler = object : Handler() {
-                override fun handleMessage(msg: Message) {
-                    super.handleMessage(msg)
-//                    throw RuntimeException("测试")
-                }
-            }
-            handler.sendEmptyMessage(100)
-
+        binding.btnDisableClassVerify.setOnClickListener {
+            KbArt.nDisableClassVerify()
+            KbArt.nDelayJit()
         }
+
+        binding.btnRetrofitTest.setOnClickListener { retrofitTest() }
         binding.btnCpuBoost.setOnClickListener { cpuFrequencyBoostTest() }
 
         binding.btnCpuBindCore.setOnClickListener {
             threadCpuBindTest()
         }
+
 
         binding.btnGetMainThreadAffinity.setOnClickListener {
 
@@ -109,8 +95,6 @@ class MainFragment : Fragment() {
 //            KProfiler.init(context)
 //            KProfiler.testMethodTrace()
         }
-        val stopSuccess = RheaATrace.stop()
-        Log.e("zxw","stopTrace $stopSuccess")
     }
 
     /**
