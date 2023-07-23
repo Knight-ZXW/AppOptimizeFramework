@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -51,7 +53,7 @@ public class HttpServer {
         }
         server = new Server(context, hostDir, RheaATrace.getHttpServerPort());
         try {
-            server.start();
+            server. start();
             Log.i("RheaServer", "start new http server on port " + server.getListeningPort());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -70,6 +72,7 @@ public class HttpServer {
 
         @Override
         public Response serve(IHTTPSession session) {
+            Log.e("zxw","server start");
             try {
                 String name = session.getParms().get("name");
                 if (name == null) {
@@ -111,4 +114,6 @@ public class HttpServer {
         }
         return json.toString();
     }
+
+
 }

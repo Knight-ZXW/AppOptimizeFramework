@@ -10,6 +10,8 @@
 #include "shadowhook.h"
 #include "atrace.h"
 #include "trace_provider.h"
+#include "binary_trace.h"
+#include "binder_proxy.h"
 
 using namespace kprofiler::atrace;
 
@@ -86,10 +88,33 @@ static jint JNI_getHttpServerPort(JNIEnv *env, jobject thiz) {
   return (jint) strtol(value, nullptr, 10);
 }
 
+static jobjectArray JNI_getBinderInterfaceTokens(JNIEnv *env, jobject thiz) {
+  auto names = all_interface_token_names();
+  jobjectArray array = env->NewObjectArray((jsize) names.size(),
+                                           env->FindClass("java/lang/String"),
+                                           nullptr);
+  if (env->ExceptionCheck()) {
+    env->ExceptionClear();
+    return nullptr;
+  }
+  int i = 0;
+  for (const auto &name : names) {
+    jstring jname = env->NewStringUTF(name.c_str());
+    env->SetObjectArrayElement(array, i, jname);
+    env->DeleteLocalRef(jname);
+    i++;
+  }
+  auto gArray = (jobjectArray) env->NewGlobalRef(array);
+  env->DeleteLocalRef(array);
+  return gArray;
+}
+
 // ----------------------------------------------------------------------------
 static JNINativeMethod methods[] = {
     {"nativeStart",                    "(Ljava/lang/String;)I", (void *) JNI_startTrace},
     {"nativeStop",                     "()I",                   (void *) JNI_stopTrace},
+    {"nativeGetBinderInterfaceTokens", "()[Ljava/lang/String;", (void *) JNI_getBinderInterfaceTokens},
+
     {"nativeStartWhenAppLaunch",       "()Z",                   (void *) JNI_startWhenAppLaunch},
     {"nativeMainThreadOnly",           "()Z",                   (void *) JNI_isMainThreadOnly},
     {"nativeGetHttpServerPort",        "()I",                   (void *) JNI_getHttpServerPort},
@@ -175,7 +200,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void * /*reserved*/) {
   if (kprofiler::utils::Build::getAndroidSdk() >= __ANDROID_API_P__) {
     free_java_reflections(env);
   }
-  if (registerNatives(env) != JNI_TRUE ) {
+  if (registerNatives(env) != JNI_TRUE || kprofiler::binary::registerNatives(env) != JNI_TRUE) {
     ALOGE("ERROR: registerNatives failed");
     goto bail;
   }

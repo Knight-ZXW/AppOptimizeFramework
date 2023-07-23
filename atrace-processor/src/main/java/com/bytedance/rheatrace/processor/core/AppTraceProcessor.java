@@ -49,7 +49,7 @@ public class AppTraceProcessor {
     public static List<Frame> getBinaryTrace(long systemFtraceTime) throws IOException {
         List<Frame> result = processBinary(systemFtraceTime);
         if (result.isEmpty()) {
-            throw new TraceError("apptrace is empty", "your app may not trace with any stub. please have a check.");
+            Log.w("apptrace is empty, your app may not trace with any stub. please have a check.");
         }
         return result;
     }
@@ -142,7 +142,7 @@ public class AppTraceProcessor {
 
     @SuppressWarnings("SdCardPath")
     private static List<Frame> processBinary(long systemFtraceTime) throws IOException {
-        Map<Integer, String> mapping = Mapping.get();
+
         List<Frame> result = new ArrayList<>();
         File bin = Workspace.appBinaryTrace();
         byte[] bytes = FileUtils.readFileToByteArray(bin);
@@ -160,6 +160,11 @@ public class AppTraceProcessor {
         Log.d("BootTime   is " + bootTime);
         Log.d("Monotonic  is " + monotonicTime);
         long diff = resolveAppSystemTimeDiff(systemFtraceTime, bootTime, monotonicTime);
+        Map<Integer, String> mapping = new HashMap<>();
+        if (buffer.hasRemaining()){
+            mapping = Mapping.get();
+        }
+
         while (buffer.hasRemaining()) {
             // startTime	45 // 9H
             // duration	    45 // 9H
@@ -197,7 +202,9 @@ public class AppTraceProcessor {
             }
         }
         sAppSystemTimeDiff = diff;
-        Log.d("App process id " + result.get(0).pid);
+        if (result.size()>0){
+            Log.d("App process id " + result.get(0).pid);
+        }
         result.sort(Comparator.comparingLong(frame -> frame.time));
         checkNameResolveResult(mapping, result);
         for (Frame frame : result) {

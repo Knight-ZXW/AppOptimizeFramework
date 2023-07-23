@@ -7,7 +7,6 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import android.webkit.WebView
-import com.knightboost.appoptimizeframework.tests.preloadtest.*
 import com.knightboost.optimize.looperopt.LooperMsgOptimizeManager
 import com.knightboost.optimize.looperopt.MsgOptimizeType
 
@@ -18,26 +17,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 //        ColdLaunchBoost.getInstance().log("before super onCreate")
         super.onCreate(savedInstanceState)
-        classLoadTest()
         setContentView(R.layout.activity_main)
         Log.d("MainLooperBoost","MainActivity onCreate");
 
-    }
-
-    private fun classLoadTest() {
-        var begin = SystemClock.elapsedRealtimeNanos()
-        PreloadClass1.map1
-        PreloadClass2.map1
-        PreloadClass3.map1
-        PreloadClass4.map1
-        PreloadClass5.map1
-        PreloadClass6.map1
-        PreloadClass7.map1
-        PreloadClass8.map1
-        PreloadClass9.map1
-        PreloadClass10.map1
-        var end = SystemClock.elapsedRealtimeNanos()
-        Log.e("classPreload", "access classes cost ${(end - begin) / 1000}us")
     }
 
     override fun onStart() {

@@ -72,6 +72,7 @@ public class Main {
                     try {
                         sysCapture.start(arg.systraceArgs);
                         sysCapture.print(true, msg -> {
+                            Log.blue("trace:"+msg);
                             if (msg.contains("enabled ftrace")) {
                                 latch.countDown();
                             }

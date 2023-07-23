@@ -77,7 +77,7 @@ class Windows implements OS {
     @Override
     public List<String> buildCommand(String exec, String[] args) {
         List<String> cmd = new ArrayList<>();
-        cmd.add("python3");
+        cmd.add("python");
         cmd.add(exec);
         cmd.add("-no_open");
         cmd.addAll(Arrays.asList(args));

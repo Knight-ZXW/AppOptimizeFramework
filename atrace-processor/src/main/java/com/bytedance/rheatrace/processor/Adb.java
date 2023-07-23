@@ -155,7 +155,9 @@ public class Adb {
             } catch (Throwable e) {
                 checkAppStarted();
                 checkRheaTraceIntegration();
-                throw new TraceError("download file " + fileName + " error", "check your app is integrated with btrace2.0 and is running.", e);
+                Log.e("download file"+fileName+" failed, \n"+StackTraceUtil.stackTraceToString(e));
+                throw new TraceError("download file " + fileName + " error\n"+StackTraceUtil.stackTraceToString(e),
+                        "check your app is integrated with btrace2.0 and is running.", e);
             }
         }
 
@@ -195,6 +197,7 @@ public class Adb {
                 Adb.call("shell", "pidof", Arguments.get().appName);
             } catch (Throwable e) {
                 // app is crash
+                Log.e("checkAppStarted failed, \n"+StackTraceUtil.stackTraceToString(e));
                 Log.e("We detect your app is not running. Check your app is started and not crashed.");
             }
         }

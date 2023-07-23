@@ -1,29 +1,30 @@
 package com.knightboost.appoptimizeframework
 
-//import com.knightboost.kprofiler.KProfiler
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import com.bytedance.rheatrace.core.TraceApplicationLike
 import com.bytedance.shadowhook.ShadowHook
-import com.knightboost.appoptimizeframework.tests.preloadtest.*
 import com.knightboost.appoptimizeframework.tests.retrofit.BilibiliService
 import com.knightboost.appoptimizeframework.tests.retrofit.HttpService
-import com.knightboost.kprofiler.atrace.RheaATrace
 import com.knightboost.messageobserver.MessageObserverManager
 import com.knightboost.optimize.looperopt.LooperMsgOptimizeManager
 import com.knightboost.optimize.looperopt.StateListener
 import com.knightboost.optimize.preload.ClassPreloadExecutor
 import timber.log.Timber
-import java.io.File
 
 
 class MyApp : Application() {
     @SuppressLint("BinaryOperationInTimber")
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
+        TraceApplicationLike.attachBaseContext(base)
+        try {
 
-
+        }catch (e:java.lang.Exception){
+            e.stackTraceToString()
+        }
         ShadowHook.init(
             ShadowHook.ConfigBuilder()
                 .setMode(ShadowHook.Mode.UNIQUE)
@@ -34,23 +35,11 @@ class MyApp : Application() {
 //        RheaATrace.start(baseContext,
 //        dir)
 
-//        MonitorClassLoader.hook(this,true)
-        // 打印 类加载信息
-//        MonitorClassLoader.printClassEnable = false
+
 
         //hidden api exemption 是必要的
         Timber.plant(Timber.DebugTree())
         MessageObserverManager.setUsePrinterToWatch(true)
-//        HiddenApi.getDefault().exempt("Landroid/os/Handler")
-//        HiddenApi.getDefault().exempt("Landroid/os/Looper")
-//        HiddenApi.getDefault().exempt("Landroid/os/MessageQueue")
-//        HiddenApi.getDefault().exempt("Landroid/app/servertransaction")
-//        HiddenApi.getDefault().exempt("Landroid/util/BoostFramework")
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//            HiddenApiBypass.addHiddenApiExemptions("")
-//        };
-
-        Log.e("MainLooperBoost","Application attachBaseContext")
 
         Thread{
             Timber.tag("App").e("开始初始化")
@@ -68,54 +57,24 @@ class MyApp : Application() {
 
         }.start()
 
-        ClassPreloadExecutor.addDemander {
-            listOf<Class<*>>(
-                PreloadClass1::class.java,
-                PreloadClass2::class.java,
-                PreloadClass3::class.java,
-                PreloadClass4::class.java,
-                PreloadClass5::class.java,
-                PreloadClass6::class.java,
-                PreloadClass7::class.java,
-                PreloadClass8::class.java,
-                PreloadClass9::class.java,
-                PreloadClass10::class.java,
-            ).toTypedArray()
-        }
+
         Thread{
             ClassPreloadExecutor.doPreload()
         }.start()
         asyncPreParseRetrofitService()
     }
 
-    private fun enableMonitorClassLoad(base: Context) {
-//        KProfiler.init(base);
-        var file = File(base.cacheDir, "temp.txt")
-        if (file.exists()) {
-            file.delete();
-        }
-        file.createNewFile();
-        val absolutePath = file.absolutePath
-        Log.e("Demo", "类加载文件保存在 ${absolutePath}")
-//        KProfiler.startMonitorClassLoad(absolutePath, Thread.currentThread());
+    override fun onCreate() {
+        super.onCreate()
+        Log.e("MainLooperBoost","Application onCreate")
     }
 
     private fun asyncPreParseRetrofitService(){
         //这行是为了避免类加载带来的差异
         HttpService.retrofit.create(BilibiliService::class.java).archiveStat2(0)
 
-//        Thread{
-//            val retrofit = HttpService.retrofit
-//            RetrofitPreloadUtil.preloadClassMethods(retrofit,
-//                BilibiliService::class.java,
-//                arrayOf("archiveStat"))
-//        }.start()
-
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        Log.e("MainLooperBoost","Application onCreate")
-    }
+
 
 }

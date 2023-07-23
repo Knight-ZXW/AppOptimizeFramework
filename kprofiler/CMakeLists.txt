@@ -67,8 +67,9 @@ find_library( # Sets the name of the path variable.
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 find_package(kbArt REQUIRED CONFIG)
-find_package(bytehook REQUIRED CONFIG)
 find_package(shadowhook REQUIRED CONFIG)
+find_package(bytehook REQUIRED CONFIG)
+
 
 
 target_link_libraries( # Specifies the target library.
