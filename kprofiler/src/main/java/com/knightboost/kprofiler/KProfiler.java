@@ -21,7 +21,6 @@ public class KProfiler {
     private static final String TAG = "KProfiler";
 
     private static final String LIB_NAME = "kprofiler";
-    private static String packageCodePath = "";
 
     public static boolean isEnable(){
         return  inited;
@@ -44,11 +43,12 @@ public class KProfiler {
             KLogger.e(TAG,"KProfiler初始化失败：最低支持 Android 8.0!");
             return;
         }
-        String path = copyAgentSo(context);
+        String path = copyAgentSo(context,LIB_NAME);
         if (path == null){
             KLogger.e(TAG,"copy jvmti agent so failed ");
             return;
         }
+//        System.loadLibrary(LIB_NAME);
         //todo 放到assets?
         KLogger.e(TAG,"copy jvmti agent so to "+path);
         System.load(path);
@@ -56,11 +56,22 @@ public class KProfiler {
         soLoad = true;
     }
 
+    private static final String getAppSoPath(Context context,String soName){
+        try {
+            String packageCodePath = context.getPackageCodePath();
+            ClassLoader classLoader = context.getClassLoader();
+            Method findLibrary = ClassLoader.class.getDeclaredMethod("findLibrary", String.class);
+            String jvmtiAgentLibPath = (String) findLibrary.invoke(classLoader, LIB_NAME);
+            return jvmtiAgentLibPath;
+        }catch (Exception e){
+            return null;
+        }
+    }
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Keep
-    private static String copyAgentSo(Context context){
+    private static String copyAgentSo(Context context,String soName){
         try {
-            packageCodePath = context.getPackageCodePath();
+            String packageCodePath = context.getPackageCodePath();
             ClassLoader classLoader = context.getClassLoader();
             Method findLibrary = ClassLoader.class.getDeclaredMethod("findLibrary", String.class);
             String jvmtiAgentLibPath = (String) findLibrary.invoke(classLoader, LIB_NAME);
@@ -98,14 +109,21 @@ public class KProfiler {
     private static boolean attachJvmtiAgent(String agentPath,ClassLoader classLoader){
         boolean attachSuccess =false;
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
-                Debug.attachJvmtiAgent(agentPath,null,classLoader);
-            }else {
-                Class vmDebugClazz = Class.forName("dalvik.system.VMDebug");
-                Method attachAgentMethod = vmDebugClazz.getMethod("attachAgent", String.class);
-                attachAgentMethod.setAccessible(true);
-                attachAgentMethod.invoke(null, agentPath);
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
+//                Debug.attachJvmtiAgent(agentPath,null,classLoader);
+//            }else {
+//            Class vmDebugClazz = Class.forName("dalvik.system.VMDebug");
+//
+//            Method attachAgentMethod = getDeclaredMethod(vmDebugClazz,
+//                    "attachAgent",String.class,ClassLoader.class);
+//            attachAgentMethod.invoke(null, agentPath,KProfiler.class.getClassLoader());
+//            }
+            Class vmDebugClazz = Class.forName("dalvik.system.VMDebug");
+
+//            getMethod.invoke(vmDebugClazz,"attachAgent",String.class);
+            Method attachAgentMethod = getDeclaredMethod(vmDebugClazz,
+                    "attachAgent",String.class,ClassLoader.class);
+            attachAgentMethod.invoke(null, agentPath,KProfiler.class.getClassLoader());
             attachSuccess = true;
         }catch (Exception e){
             Log.e(TAG,"attachAgent failed" ,e);
@@ -114,50 +132,20 @@ public class KProfiler {
         return attachSuccess;
     }
 
-
-    public static  boolean startMonitorClassLoad(String filePath){
-        if (inited){
-            return false;
+    public static Method getDeclaredMethod(
+            Class clazz,String methodName,Class<?>... parameterTypes
+    ){
+        try {
+            Method method = (Method) Class.class.getDeclaredMethod(
+                    "getDeclaredMethod",String.class,
+                    Class[].class
+            ).invoke(clazz,methodName,parameterTypes);
+            method.setAccessible(true);
+            return method;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        return nStartMonitorClassLoad(filePath);
     }
-
-
-    public static native boolean nStartMonitorClassLoad(String filePath);
-
-    public static  boolean startMonitorClassLoad(String filePath,Thread targetThread){
-        if (inited){
-            return false;
-        }
-        return nStartMonitorClassLoadOfThread(filePath,targetThread);
-    }
-
-    public static native boolean nStartMonitorClassLoadOfThread(String filePath,
-                                                               Thread targetThread);
-
-    public static  void recordClassLoadMsg(String msg){
-        if (!inited){
-            return;
-        }
-        nRecordClassLoadMsg(msg);
-    }
-
-    /**
-     * 该函数用来在记录类加载过程中 标记一些时间节点，用于分隔不同阶段
-     * @param msg
-     */
-    public static native void nRecordClassLoadMsg(String msg);
-
-    public static  boolean stopMonitorClassLoad(){
-        if (!inited){
-            return false;
-        }
-        return nStopMonitorClassLoad();
-    };
-
-    public static native boolean nStopMonitorClassLoad();
-
-
-    public static native void testMethodTrace();
 
 }

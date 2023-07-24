@@ -43,7 +43,7 @@ android {
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
-            version "3.18.1"
+            version "3.22.1"
         }
     }
     packagingOptions {
@@ -59,7 +59,7 @@ android {
         jvmTarget = '1.8'
     }
 
-    ndkVersion '23.1.7779620'
+//    ndkVersion '23.1.7779620'
 }
 
 dependencies {

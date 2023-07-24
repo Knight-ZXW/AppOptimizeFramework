@@ -12,7 +12,6 @@
 #include "trace_provider.h"
 #include "binary_trace.h"
 #include "binder_proxy.h"
-
 using namespace kprofiler::atrace;
 
 static bool SetATraceLocation(JNIEnv *env, jobject thiz, jstring traceDir) {
@@ -186,6 +185,11 @@ static void free_java_reflections(JNIEnv *env) {
 }
 
 JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void * /*reserved*/) {
+  JNIEnv *jenv;
+  if (vm->GetEnv((void **) &jenv, JNI_VERSION_1_6) != JNI_OK) {
+    return JNI_ERR;
+  }
+
   UnionJNIEnvToVoid uenv;
   uenv.venv = nullptr;
   jint result = -1;

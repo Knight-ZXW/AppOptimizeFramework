@@ -12,6 +12,7 @@ import com.knightboost.appoptimizeframework.tests.retrofit.BilibiliService
 import com.knightboost.appoptimizeframework.tests.retrofit.HttpService
 import com.knightboost.artvm.ArtThread
 import com.knightboost.artvm.KbArt
+import com.knightboost.kprofiler.KProfiler
 import com.knightboost.kprofiler.atrace.RheaATrace
 import com.knightboost.messageobserver.MessageObserver
 import com.knightboost.messageobserver.MessageObserverManager
@@ -87,12 +88,11 @@ class MainFragment : Fragment() {
         }
 
         binding.jdwpTest.setOnClickListener {
-
             KbArt.nSetJavaDebuggable(true)
             KbArt.nSetJdwpAllowed(true)
             val nIsJdwpAllow = KbArt.nIsJdwpAllow()
             Log.e("art", "nIsJdwpAllow ${nIsJdwpAllow}")
-//            KProfiler.init(context)
+            KProfiler.init(context)
 //            KProfiler.testMethodTrace()
         }
     }

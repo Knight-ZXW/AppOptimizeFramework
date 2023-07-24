@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "utils/threads.h"
+#include "threads.h"
 
 #include <sys/prctl.h>
 #include <unistd.h>

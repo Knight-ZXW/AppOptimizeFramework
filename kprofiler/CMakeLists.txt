@@ -10,25 +10,13 @@ cmake_minimum_required(VERSION 3.18.1)
 
 project("kprofiler")
 
-set(utils_DIR src/main/cpp/utils)
-set(jvmagent_DIR src/main/cpp/jvmagent)
-set(trace_DIR src/main/cpp/trace)
-set(fastlog_DIR src/main/cpp/third_party/profilo/fastlog)
 
+set(jvmagent_DIR src/main/cpp/jvmagent)
+set(atrace_DIR src/main/cpp/atrace)
 
 include_directories(src/main/cpp)
 include_directories(src/main/cpp/jvmti)
-include_directories(${utils_DIR})
-include_directories(${trace_DIR})
-include_directories(${fastlog_DIR})
-
-
-aux_source_directory(${utils_DIR} SRC_DIR_UTILS)
-aux_source_directory(${jvmagent_DIR} JVM_AGENT)
-aux_source_directory(${trace_DIR} SRC_DIR_TRACE)
-
-add_subdirectory(${fastlog_DIR} ${CMAKE_CURRENT_BINARY_DIR}/fastlog)
-
+add_subdirectory(${atrace_DIR} ${CMAKE_CURRENT_BINARY_DIR}/k-atrace)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -40,9 +28,7 @@ add_library( # Sets the name of the library.
 
         # Sets the library as a shared library.
         SHARED
-        ${SRC_DIR_UTILS}
         ${JVM_AGENT}
-        ${SRC_DIR_TRACE}
         src/main/cpp/jvmagent/jvmti_helper.cpp
         src/main/cpp/jvmagent/agent_env.cpp
         # Provides a relative path to your source file(s).
@@ -70,16 +56,13 @@ find_package(kbArt REQUIRED CONFIG)
 find_package(shadowhook REQUIRED CONFIG)
 find_package(bytehook REQUIRED CONFIG)
 
-
-
 target_link_libraries( # Specifies the target library.
         kprofiler
-
 
         # Links the target library to the log library
         # included in the NDK.
         bytehook::bytehook
         shadowhook::shadowhook
         kbArt::kbArt
-        fastlog
+        k-atrace
         ${log-lib})

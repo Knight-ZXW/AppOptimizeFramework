@@ -158,7 +158,7 @@ public class RheaATrace {
         if (jniLoadSuccess.get()) {
             return true;
         }
-        System.loadLibrary("kprofiler");
+        System.loadLibrary("k-atrace");
         return true;
     }
 
