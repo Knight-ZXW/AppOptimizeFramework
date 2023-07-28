@@ -16,6 +16,8 @@ set(atrace_DIR src/main/cpp/atrace)
 
 include_directories(src/main/cpp)
 include_directories(src/main/cpp/jvmti)
+include_directories(src/main/cpp/atrace/trace)
+include_directories(src/main/cpp/atrace/utils)
 add_subdirectory(${atrace_DIR} ${CMAKE_CURRENT_BINARY_DIR}/k-atrace)
 
 # Creates and names a library, sets it as either STATIC

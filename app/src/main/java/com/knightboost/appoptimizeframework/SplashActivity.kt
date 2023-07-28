@@ -32,6 +32,13 @@ class SplashActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("MainLooperBoost", "SplashActivity onResume")
+
+        if (true){//本地开发 TODO删除
+            val intent = Intent(this, MainActivity::class.java)
+            Log.e("MainLooperBoost", "begin start to MainActivity")
+            startActivity(intent)
+            return
+        }
         Handler().postDelayed({
             //发送3秒的耗时消息到队列中
             //这里为了方便模拟，直接在主线程发送耗时任务,模拟耗时消息在 启动Activity消息之前的场景
