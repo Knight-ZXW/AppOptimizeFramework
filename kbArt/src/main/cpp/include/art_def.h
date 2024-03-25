@@ -161,5 +161,5 @@ typedef std::string (*PrettyMethod_t)(void *art_method, bool with_signature);
 
 typedef ThreadState (*FetchState_t)(void *thread,/* out */void* monitor_object,/* out */uint32_t* lock_owner_tid);
 
-typedef uint64_t (*GetCpuMicroTime_t)(void* thread);
+
 }

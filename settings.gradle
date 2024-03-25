@@ -9,6 +9,6 @@ include ':kprofiler'
 include ':kbArt'
 include ':optimize-other'
 include ':optimize-looper'
-include ':atrace-server'
-project(':atrace-server').projectDir = new File('./atrace/atrace-server')
-include ':atrace-processor'
+//include ':atrace-server'
+//project(':atrace-server').projectDir = new File('./atrace/atrace-server')
+//include ':atrace-processor'

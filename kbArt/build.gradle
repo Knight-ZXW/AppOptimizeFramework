@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.knightboost.artvm'
-    compileSdk 32
+    compileSdk 34
 
     defaultConfig {
         minSdk 16

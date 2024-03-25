@@ -6,6 +6,7 @@
 #include <android/log.h>
 #include <android/api-level.h>
 #include "stdlib.h"
+#include <string.h>
 #ifdef __LP64__
 const char *const kSystemLibDir = "/system/lib64/";
 const char *const kApexLibDir = "/apex/com.android.runtime/lib64/";

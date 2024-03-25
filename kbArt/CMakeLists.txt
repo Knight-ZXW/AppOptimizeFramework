@@ -26,6 +26,7 @@ add_library( # Sets the name of the library.
         # Sets the library as a shared library.
         SHARED
 #        ${SRC_DIR_ART}
+        src/main/cpp/art/art_xdl.cpp
         src/main/cpp/art/art.cpp
         src/main/cpp/art/art_thread.cpp
         ${SRC_DIR_Sliver}

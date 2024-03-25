@@ -10,8 +10,10 @@
 #include "macro.h"
 #include "tls.h"
 #include "common.h"
-
 namespace kbArt {
+
+typedef uint64_t (*GetCpuMicroTime_t)(void *thread);
+
 class Thread {
   struct PACKED(4) tls_32bit_sized_values {
     // We have no control over the size of 'bool', but want our boolean fields
@@ -78,9 +80,11 @@ class Thread {
    * 获取系统 线程Id
    * @return
    */
-   uint32_t GetTid();
+  uint32_t GetTid();
 
-   static Thread *Current();
+  uint64_t GetCpuMicroTime();
+
+  static Thread *Current();
 };
 
 }

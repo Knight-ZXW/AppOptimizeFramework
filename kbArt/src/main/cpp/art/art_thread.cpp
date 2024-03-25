@@ -1,7 +1,9 @@
 //
 // Created by Knight-ZXW on 2023/6/1.
 //
+#include <xdl.h>
 #include "art_thread.h"
+#include "art_xdl.h"
 
 uint32_t kbArt::Thread::GetThreadId() {
   static uint32_t offset = 0;
@@ -32,4 +34,15 @@ uint32_t kbArt::Thread::GetTid() {
 kbArt::Thread *kbArt::Thread::Current() {
   void *thread = __get_tls()[TLS_SLOT_ART_THREAD_SELF];
   return reinterpret_cast<Thread *>(thread);
+}
+
+uint64_t kbArt::Thread::GetCpuMicroTime() {
+  static GetCpuMicroTime_t get_cpu_micro_time = nullptr;
+  if (UNLIKELY( get_cpu_micro_time == nullptr)) {
+    get_cpu_micro_time =
+        reinterpret_cast<GetCpuMicroTime_t>(xdl_dsym(get_art_handle(),
+                                                     "_ZNK3art6Thread15GetCpuMicroTimeEv",
+                                                     nullptr));
+  }
+  return get_cpu_micro_time(this);
 }

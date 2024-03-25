@@ -46,18 +46,6 @@ class MainFragment : Fragment() {
         return binding.root
     }
 
-    private fun retrofitTest() {
-        val retrofit = HttpService.retrofit
-        val begin1 = SystemClock.elapsedRealtimeNanos()
-        val bilibiliService = retrofit.create(BilibiliService::class.java)
-        val end1 = SystemClock.elapsedRealtimeNanos()
-        Log.w("retrofitTest", "创建BilibiliService动态代理实例耗时 ${(end1 - begin1) / 1000} us")
-        Log.w("retrofitTest", "开始调用 archiveStat")
-        val begin = SystemClock.elapsedRealtimeNanos()
-        bilibiliService.archiveStat(170001)
-        val end = SystemClock.elapsedRealtimeNanos()
-        Log.w("retrofitTest", "get archiveStat method cost ${(end - begin) / 1000} us")
-    }
 
     override fun onResume() {
         super.onResume()
@@ -67,11 +55,21 @@ class MainFragment : Fragment() {
             KbArt.nDelayJit()
         }
 
-        binding.btnRetrofitTest.setOnClickListener { retrofitTest() }
+
         binding.btnCpuBoost.setOnClickListener { cpuFrequencyBoostTest() }
 
         binding.btnCpuBindCore.setOnClickListener {
             threadCpuBindTest()
+        }
+
+        binding.btnTestGetThreadCpuTime.setOnClickListener {
+
+            val nativePeer = ArtThread.getNativePeer(Looper.getMainLooper().thread)
+
+           val mainThreadCpuMicroTime = ArtThread.getCpuMicroTime(nativePeer)
+            Log.d("zxw","主线程CpuMicroTime "+mainThreadCpuMicroTime)
+
+
         }
 
 
@@ -177,25 +175,6 @@ class MainFragment : Fragment() {
         }
         thread.name = taskName
         thread.start()
-    }
-
-    private fun gsonTest() {
-        GsonTest.gson
-        GsonTest.gson2
-        //↑ 避免 初始化耗时影响数据测试
-        val begin = SystemClock.elapsedRealtime()
-        for (i in 1..10) {
-            GsonTest.test()
-        }
-        val end = SystemClock.elapsedRealtime()
-        Log.e("gsonTest", "优化前 总耗时 ${end - begin}")
-
-        val begin1 = SystemClock.elapsedRealtime()
-        for (i in 1..10) {
-            GsonTest.testWithCustomTypeAdapter()
-        }
-        val end1 = SystemClock.elapsedRealtime()
-        Log.e("gsonTest", "优化后 总耗时 ${end1 - begin1}")
     }
 
     companion object {

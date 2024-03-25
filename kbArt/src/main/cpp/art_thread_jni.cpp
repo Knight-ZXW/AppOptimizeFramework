@@ -30,3 +30,9 @@ Java_com_knightboost_artvm_ArtThread_getTid(JNIEnv *env,
   }
   return tid;
 }
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_knightboost_artvm_ArtThread_getCpuMicroTime(JNIEnv *env, jclass clazz, jlong nativePeerValue) {
+  auto *artThread = reinterpret_cast<kbArt::Thread *>(nativePeerValue);
+  return artThread->GetCpuMicroTime();
+}
