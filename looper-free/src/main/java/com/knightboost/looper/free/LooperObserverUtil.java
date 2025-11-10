@@ -22,7 +22,7 @@ public class LooperObserverUtil {
             Method messageDispatched =ReflectUtil.getDeclaredMethod(classObserver,
                     "messageDispatched",Object.class, Message.class);
             Method dispatchingThrewException =ReflectUtil.getDeclaredMethod(classObserver,
-                    "messageDispatchStarting");
+                    "dispatchingThrewException",Object.class, Message.class, Exception.class);
             if (messageDispatchStarting == null || messageDispatched == null ||
                     dispatchingThrewException == null) {
                 return false;
@@ -56,7 +56,7 @@ public class LooperObserverUtil {
 
             //检查  Observer的函数是否存在
             if (oldObserver!=null){
-                setObserverMethod.invoke(null,new LooperObserver(){
+                setObserverMethod.invoke(null,new Looper.Observer(){
                     @Override
                     public Object messageDispatchStarting() {
                         Object token = null;
@@ -79,7 +79,7 @@ public class LooperObserverUtil {
                 });
 
             }else {
-                setObserverMethod.invoke(null,new LooperObserver(){
+                setObserverMethod.invoke(null,new Looper.Observer(){
                     @Override
                     public Object messageDispatchStarting() {
                         return looperMessageObserver.messageDispatchStarting(new Object());
